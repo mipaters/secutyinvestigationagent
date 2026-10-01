@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090e1a">
+  <title>GuardianAI | Telco Information Protection Command Center</title>
+  <meta name="description" content="GuardianAI information protection and compliance command center demo for telecommunications.">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090e1a;
+      --panel: rgba(17, 25, 43, .76);
+      --panel-solid: #11192b;
+      --panel-soft: #151f34;
+      --line: rgba(146, 169, 207, .15);
+      --line-bright: rgba(146, 169, 207, .25);
+      --text: #edf3ff;
+      --muted: #8795ad;
+      --muted-2: #65748d;
+      --cyan: #68d9f4;
+      --blue: #7d9cff;
+      --violet: #a78bfa;
+      --green: #5fe0b0;
+      --amber: #ffc66d;
+      --red: #ff7b8b;
+      --gradient: linear-gradient(112deg, #53d7ef 0%, #7b9bff 55%, #ad8bff 100%);
+      --shadow: 0 22px 70px rgba(0, 0, 0, .24);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 13% -12%, rgba(76, 133, 220, .19), transparent 36rem),
+        radial-gradient(ellipse at 93% 12%, rgba(117, 87, 221, .12), transparent 34rem),
+        var(--bg);
+      font: 14px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, a { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    .shell { max-width: 1440px; padding: 0 36px; margin: 0 auto; }
+    .topbar {
+      position: sticky; inset: 0 0 auto; z-index: 20;
+      background: rgba(9, 14, 26, .82); backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner { min-height: 72px; display: flex; align-items: center; gap: 27px; }
+    .brand { display: flex; align-items: center; gap: 11px; flex: 0 0 auto; }
+    .brand-mark {
+      width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px;
+      background: var(--gradient); box-shadow: 0 6px 22px rgba(91, 168, 238, .25);
+      color: #0b1120;
+    }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand-name { font-weight: 700; letter-spacing: .015em; font-size: 14px; line-height: 1.2; }
+    .brand-sub { color: var(--muted); font-size: 10px; margin-top: 4px; }
+    .nav { display: flex; align-items: center; gap: 3px; min-width: 0; }
+    .nav button {
+      border: 0; border-radius: 9px; padding: 9px 12px; background: transparent;
+      color: var(--muted); cursor: pointer; white-space: nowrap; transition: .2s ease;
+    }
+    .nav button:hover, .nav button.active { background: rgba(127, 154, 207, .11); color: var(--text); }
+    .nav button.active { box-shadow: inset 0 -2px 0 var(--cyan); }
+    .live-status { margin-left: auto; display: flex; align-items: center; gap: 8px; color: #a9b7cb; font-size: 12px; white-space: nowrap; }
+    .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(95, 224, 176, .1); }
+    main { min-height: calc(100vh - 72px); padding-bottom: 64px; }
+    .view { display: none; animation: enter .35s ease both; }
+    .view.active { display: block; }
+    @keyframes enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+    .hero { padding: 55px 0 35px; }
+    .eyebrow {
+      width: fit-content; display: inline-flex; align-items: center; gap: 9px;
+      border: 1px solid rgba(120, 159, 223, .2); border-radius: 999px;
+      background: rgba(103, 142, 211, .075); color: #9eb6e5;
+      padding: 6px 11px; font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+    }
+    .eyebrow .tiny-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); }
+    h1 { max-width: 900px; margin: 19px 0 15px; font-size: clamp(37px, 5.2vw, 66px); line-height: 1.07; letter-spacing: -.055em; font-weight: 650; }
+    .gradient-text { color: transparent; background: var(--gradient); -webkit-background-clip: text; background-clip: text; }
+    .lead { max-width: 760px; margin: 0; color: #a8b4c9; font-size: 16px; line-height: 1.75; }
+    .hero-note { max-width: 760px; margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 24px; }
+    .button {
+      min-height: 41px; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      padding: 0 16px; border-radius: 10px; border: 1px solid var(--line-bright);
+      color: var(--text); background: rgba(255, 255, 255, .025); cursor: pointer;
+      transition: transform .18s, border-color .18s, background .18s;
+    }
+    .button:hover { transform: translateY(-1px); border-color: rgba(117, 202, 238, .5); background: rgba(107, 167, 232, .08); }
+    .button.primary { border: 0; color: #0b1423; font-weight: 680; background: var(--gradient); box-shadow: 0 8px 24px rgba(73, 158, 221, .18); }
+    .button.primary:hover { filter: brightness(1.07); }
+    .button.small { min-height: 34px; padding: 0 11px; font-size: 12px; }
+    .button svg { width: 15px; height: 15px; }
+    .grid { display: grid; gap: 15px; }
+    .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .panel {
+      border: 1px solid var(--line); background: linear-gradient(145deg, rgba(20, 30, 50, .84), rgba(14, 21, 37, .76));
+      border-radius: 17px; box-shadow: var(--shadow);
+    }
+    .kpi { min-height: 129px; padding: 18px 20px; position: relative; overflow: hidden; }
+    .kpi:before { content: ""; position: absolute; top: 0; left: 18px; right: 18px; height: 1px; background: var(--gradient); opacity: .68; }
+    .kpi-label { color: var(--muted); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+    .kpi-value { margin-top: 8px; font-size: 35px; font-weight: 630; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+    .kpi-foot { color: var(--muted-2); font-size: 11px; margin-top: 1px; }
+    .good { color: var(--green); } .warn { color: var(--amber); } .accent { color: var(--cyan); } .violet { color: var(--violet); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 37px 0 15px; }
+    .section-title { margin: 0; font-size: 19px; font-weight: 590; letter-spacing: -.02em; }
+    .section-sub { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .overview-grid { grid-template-columns: minmax(0, 1.42fr) minmax(290px, .85fr); }
+    .panel-pad { padding: 21px 22px; }
+    .panel-title { margin: 0; font-size: 14px; font-weight: 570; }
+    .panel-desc { margin: 3px 0 0; font-size: 11px; color: var(--muted); }
+    .chart { height: 207px; display: flex; align-items: stretch; gap: 13px; margin-top: 22px; position: relative; }
+    .chart-y { display: flex; flex-direction: column; justify-content: space-between; color: var(--muted-2); font-size: 9px; padding: 0 0 21px; }
+    .chart-main { position: relative; flex: 1; display: flex; flex-direction: column; }
+    .chart-grid { position: absolute; inset: 0 0 22px; display: flex; flex-direction: column; justify-content: space-between; }
+    .chart-grid span { border-top: 1px dashed rgba(151, 173, 211, .13); }
+    .bars { position: relative; z-index: 1; flex: 1; display: flex; align-items: end; justify-content: space-around; gap: 9px; padding: 0 5px; }
+    .bar-group { height: 100%; flex: 1; max-width: 46px; display: flex; align-items: end; justify-content: center; gap: 4px; }
+    .bar { width: 40%; min-width: 6px; border-radius: 4px 4px 1px 1px; background: linear-gradient(180deg, #63d5ed, #698dff); opacity: .88; transition: height .5s; }
+    .bar.alt { background: linear-gradient(180deg, #ad92ff, #727cf0); opacity: .78; }
+    .months { display: flex; justify-content: space-around; color: var(--muted-2); font-size: 9px; padding-top: 7px; }
+    .legend { display: flex; gap: 17px; color: var(--muted); font-size: 10px; margin-top: 8px; }
+    .legend span { display: inline-flex; gap: 6px; align-items: center; }
+    .legend i { width: 7px; height: 7px; display: inline-block; border-radius: 2px; background: var(--cyan); }
+    .legend i.alt { background: var(--violet); }
+    .heat-list { margin-top: 20px; display: grid; gap: 14px; }
+    .heat-row { display: grid; grid-template-columns: 126px 1fr 25px; gap: 10px; align-items: center; font-size: 11px; }
+    .heat-row .team { color: #bac5d7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track { height: 6px; border-radius: 20px; background: rgba(142, 159, 190, .12); overflow: hidden; }
+    .track span { height: 100%; display: block; border-radius: inherit; background: var(--gradient); }
+    .heat-row:nth-child(1) .track span { background: linear-gradient(90deg, #ffc66d, #ff7189); }
+    .heat-row:nth-child(2) .track span { background: linear-gradient(90deg, #ffd16f, #ff9d74); }
+    .score { color: #afbdd2; font-variant-numeric: tabular-nums; text-align: right; }
+    .walkthrough { margin-top: 16px; padding: 19px 22px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .walk-copy { display: flex; align-items: center; gap: 13px; }
+    .play-mark { flex: 0 0 39px; height: 39px; display: grid; place-items: center; border-radius: 12px; color: var(--cyan); background: rgba(104, 217, 244, .1); }
+    .walk-copy strong { font-weight: 560; font-size: 13px; display: block; }
+    .walk-copy span { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
+    .notice { color: var(--muted-2); font-size: 10px; }
+    .subhero { padding: 47px 0 23px; }
+    .subhero h1 { font-size: clamp(32px, 4vw, 48px); margin: 15px 0 10px; }
+    .subhero .lead { font-size: 14px; max-width: 780px; }
+    .two-col { grid-template-columns: minmax(0, 1.25fr) minmax(290px, .82fr); }
+    .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .four-col { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 13px; font-size: 10px; color: var(--muted); }
+    .chart-legend i { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: var(--cyan); }
+    .risk-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+    .risk-row:last-child { border-bottom: 0; }
+    .risk-row span:first-child { color: #c4cee0; }
+    .pill { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: rgba(255,255,255,.03); color: #aebbd0; padding: 3px 8px; border-radius: 99px; font-size: 10px; white-space: nowrap; }
+    .pill.critical { color: #ff9aa6; border-color: rgba(255, 123, 139, .25); background: rgba(255, 123, 139, .08); }
+    .pill.cyan { color: var(--cyan); border-color: rgba(104, 217, 244, .22); background: rgba(104, 217, 244, .06); }
+    .pill.green { color: var(--green); border-color: rgba(95, 224, 176, .22); background: rgba(95, 224, 176, .06); }
+    .score-grid { grid-template-columns: repeat(4, 1fr); margin-top: 15px; }
+    .score-card { padding: 17px; }
+    .score-num { font-size: 27px; font-weight: 620; margin-top: 7px; }
+    .score-label { color: var(--muted); font-size: 11px; }
+    .scenario-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+    .scenario-tab {
+      border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.025);
+      padding: 9px 12px; cursor: pointer; color: var(--muted); font-size: 11px;
+    }
+    .scenario-tab.selected { color: var(--text); border-color: rgba(104,217,244,.45); background: rgba(104,217,244,.08); }
+    .scenario-layout { grid-template-columns: minmax(270px, .9fr) minmax(0, 1.3fr); align-items: start; }
+    .request-card { padding: 22px; }
+    .person { display: flex; align-items: center; gap: 10px; padding-bottom: 17px; border-bottom: 1px solid var(--line); }
+    .avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(140deg, #558eb9, #876fe2); font-size: 11px; font-weight: 650; }
+    .person-name { font-size: 12px; font-weight: 570; }
+    .person-role { color: var(--muted); font-size: 10px; }
+    .app-tag { margin-left: auto; color: #91a7cc; font-size: 10px; }
+    .request-quote { font-size: 14px; line-height: 1.7; margin: 17px 0; color: #dce7f8; }
+    .label-small { text-transform: uppercase; letter-spacing: .12em; font-size: 9px; color: var(--muted); margin-bottom: 8px; }
+    .file-list { display: grid; gap: 7px; }
+    .file { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: rgba(7,12,23,.3); padding: 8px 9px; border-radius: 8px; font-size: 10px; color: #b6c3d7; }
+    .file-icon { width: 23px; height: 23px; flex: 0 0 23px; display: grid; place-items: center; border-radius: 6px; color: #9db9fa; background: rgba(125,156,255,.1); font-size: 9px; font-weight: 700; }
+    .file .pill { margin-left: auto; font-size: 9px; }
+    .run-row { display: flex; gap: 8px; margin-top: 15px; }
+    .run-row .button { flex: 1; }
+    .steps-card { padding: 20px 21px; }
+    .step { position: relative; display: grid; grid-template-columns: 27px 1fr auto; gap: 11px; padding: 1px 0 20px; }
+    .step:not(:last-child):before { content: ""; position: absolute; top: 27px; bottom: 3px; left: 12px; border-left: 1px dashed rgba(126, 154, 202, .25); }
+    .step:last-child { padding-bottom: 0; }
+    .step-icon { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line-bright); background: #121c2f; color: var(--muted); font-size: 10px; z-index: 1; }
+    .step.done .step-icon { color: var(--green); border-color: rgba(95,224,176,.26); background: rgba(95,224,176,.08); }
+    .step.active .step-icon { color: #111a2a; border: 0; background: var(--gradient); }
+    .step h3 { margin: 2px 0 3px; font-size: 12px; font-weight: 590; }
+    .step p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .step-status { color: var(--muted-2); font-size: 9px; padding-top: 5px; white-space: nowrap; }
+    .result-box { margin-top: 17px; padding: 14px 15px; border-radius: 11px; border: 1px solid rgba(95,224,176,.2); background: rgba(95,224,176,.055); display: none; }
+    .result-box.visible { display: block; animation: enter .25s ease; }
+    .result-box strong { font-size: 11px; color: var(--green); font-weight: 600; }
+    .result-box p { font-size: 10px; color: #a7b8c8; line-height: 1.65; margin: 5px 0 0; }
+    .evidence-strip { margin-top: 15px; padding: 13px 15px; background: rgba(122, 148, 190, .055); border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 10px; }
+    .evidence-strip b { color: #c9d5e7; font-weight: 550; }
+    .classification { margin-top: 17px; }
+    .class-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .class-label { margin-top: 9px; padding: 10px 11px; border-radius: 9px; border: 1px solid rgba(255,198,109,.24); background: rgba(255,198,109,.06); font-size: 10px; color: #f1d6a7; }
+    .class-label b { color: #ffe6bb; display: block; font-size: 11px; font-weight: 580; }
+    .class-label span { color: #b7a98e; }
+    .agent-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .agent-card { min-height: 190px; padding: 19px; }
+    .agent-head { display: flex; align-items: center; gap: 10px; }
+    .agent-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: rgba(104,217,244,.085); color: var(--cyan); font-size: 14px; }
+    .agent-card:nth-child(2) .agent-icon,.agent-card:nth-child(5) .agent-icon { color: var(--violet); background: rgba(167,139,250,.1); }
+    .agent-card:nth-child(3) .agent-icon { color: var(--green); background: rgba(95,224,176,.085); }
+    .agent-card h3 { margin: 0; font-size: 12px; font-weight: 590; }
+    .agent-card .role { font-size: 10px; color: var(--muted); }
+    .agent-card ul { list-style: none; margin: 15px 0 0; padding: 0; display: grid; gap: 6px; color: #9dacc2; font-size: 10px; }
+    .agent-card li:before { content: "↳"; margin-right: 7px; color: var(--cyan); }
+    .orchestration { padding: 18px; margin-bottom: 17px; display: grid; grid-template-columns: 1fr 60px 1.4fr 60px 1fr; align-items: center; gap: 11px; }
+    .orchestration-node { border: 1px solid var(--line); background: rgba(5, 10, 21, .28); border-radius: 12px; padding: 14px; text-align: center; }
+    .orchestration-node strong { display: block; font-size: 11px; font-weight: 580; }
+    .orchestration-node span { display: block; color: var(--muted); margin-top: 4px; font-size: 9px; }
+    .orchestration-node.central { border-color: rgba(104,217,244,.3); background: rgba(104,217,244,.05); }
+    .orchestration-node.central strong { color: var(--cyan); }
+    .flow-arrow { text-align: center; color: #647da4; letter-spacing: 2px; }
+    .arch-stack { display: grid; gap: 9px; }
+    .arch-layer { display: grid; grid-template-columns: 49px minmax(160px, .7fr) 1.8fr; align-items: center; gap: 15px; padding: 14px 16px; }
+    .layer-num { color: #8c9bb2; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .layer-name { font-size: 12px; font-weight: 570; }
+    .layer-content { display: flex; flex-wrap: wrap; gap: 6px; }
+    .layer-content .pill { font-size: 9px; }
+    .layer-core { border-color: rgba(104,217,244,.27); background: linear-gradient(100deg, rgba(28,56,74,.58), rgba(19,27,46,.8)); }
+    .classification-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .control-card { min-height: 180px; padding: 17px; }
+    .control-card .control-icon { color: var(--cyan); font-size: 15px; }
+    .control-card h3 { margin: 10px 0 4px; font-size: 12px; font-weight: 590; }
+    .control-card p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.65; }
+    .control-card .pill { margin-top: 11px; }
+    .outcome-grid .panel { min-height: 143px; padding: 18px; }
+    .outcome-icon { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid rgba(104,217,244,.15); border-radius: 9px; color: var(--cyan); background: rgba(104,217,244,.07); }
+    .outcome-grid h3 { margin: 12px 0 5px; font-size: 12px; font-weight: 580; }
+    .outcome-grid p { margin: 0; color: var(--muted); font-size: 10px; }
+    .value-banner { margin-top: 18px; padding: 23px; display: flex; justify-content: space-between; align-items: center; gap: 22px; background: linear-gradient(105deg, rgba(38, 77, 112, .5), rgba(53, 45, 97, .36)); }
+    .value-banner h2 { margin: 0 0 5px; font-size: 18px; font-weight: 600; }
+    .value-banner p { margin: 0; color: #aab7cb; font-size: 11px; }
+    .brand-stack { color: #c4d5f2; font-size: 10px; text-align: right; line-height: 1.8; }
+    .timeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 20px; }
+    .timeline-item { position: relative; padding: 0 12px 0 0; }
+    .timeline-item:not(:last-child):after { content: ""; position: absolute; left: 13px; right: 8px; top: 7px; height: 1px; background: linear-gradient(90deg, rgba(104,217,244,.6), rgba(104,217,244,.08)); }
+    .timeline-dot { position: relative; z-index: 1; width: 14px; height: 14px; border: 3px solid #16273b; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 1px rgba(104,217,244,.4); }
+    .timeline-item:nth-child(4) .timeline-dot { background: var(--violet); box-shadow: 0 0 0 1px rgba(167,139,250,.4); }
+    .timeline-item h3 { margin: 12px 0 3px; font-size: 10px; font-weight: 590; }
+    .timeline-item p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
+    .footer { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); margin-top: 45px; padding-top: 17px; color: var(--muted-2); font-size: 10px; }
+    .walk-modal { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(3,7,14,.76); backdrop-filter: blur(10px); }
+    .walk-modal.open { display: flex; }
+    .modal-card { width: min(560px, 100%); padding: 27px; border: 1px solid var(--line-bright); background: #111a2c; border-radius: 18px; box-shadow: 0 30px 100px rgba(0,0,0,.45); }
+    .modal-top { display: flex; align-items: start; justify-content: space-between; gap: 15px; }
+    .modal-top h2 { margin: 12px 0 0; font-size: 22px; letter-spacing: -.03em; }
+    .close { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 20px; }
+    .modal-copy { color: #abb8cd; line-height: 1.75; min-height: 86px; margin: 14px 0 20px; }
+    .modal-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .dots { display: flex; gap: 5px; }
+    .dots i { width: 6px; height: 6px; border-radius: 20px; background: #46556d; }
+    .dots i.active { width: 17px; background: var(--cyan); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 1080px) {
+      .shell { padding: 0 24px; }
+      .topbar-inner { gap: 15px; }
+      .nav button { padding: 8px 8px; font-size: 11px; }
+      .brand-sub { display: none; }
+      .overview-grid, .two-col { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 780px) {
+      .shell { padding: 0 17px; }
+      .topbar { position: relative; }
+      .topbar-inner { flex-wrap: wrap; padding: 12px 0 8px; gap: 10px; }
+      .brand { margin-right: auto; }
+      .live-status { margin-left: 0; }
+      .nav { order: 3; width: 100%; overflow-x: auto; padding-bottom: 3px; }
+      .nav button { font-size: 10px; }
+      .hero { padding-top: 37px; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .overview-grid, .two-col, .scenario-layout { grid-template-columns: 1fr; }
+      .three-col, .classification-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .four-col, .score-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .orchestration { grid-template-columns: 1fr; }
+      .flow-arrow { transform: rotate(90deg); }
+      .arch-layer { grid-template-columns: 35px 1fr; }
+      .layer-content { grid-column: 2; }
+      .walkthrough { align-items: start; flex-direction: column; }
+      .timeline { grid-template-columns: 1fr; gap: 15px; }
+      .timeline-item { display: grid; grid-template-columns: 19px 1fr; column-gap: 9px; padding: 0; }
+      .timeline-item:not(:last-child):after { left: 6px; top: 15px; bottom: -20px; right: auto; width: 1px; height: auto; }
+      .timeline-dot { grid-row: span 2; }
+      .timeline-item h3 { margin: 0; }
+      .value-banner { align-items: start; flex-direction: column; }
+      .brand-stack { text-align: left; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { gap: 9px; }
+      .kpi { min-height: 113px; padding: 14px; }
+      .kpi-value { font-size: 29px; }
+      .kpi-label { font-size: 9px; }
+      .three-col, .classification-grid { grid-template-columns: 1fr; }
+      .heat-row { grid-template-columns: 102px 1fr 22px; }
+      .footer { flex-direction: column; }
+      .request-card, .steps-card, .panel-pad { padding: 17px; }
+      .hero-actions .button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *:before, *:after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="#" aria-label="GuardianAI home" data-page-link="overview">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 19 6v5.2c0 4.8-2.9 8.1-7 9.8-4.1-1.7-7-5-7-9.8V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+        </span>
+        <span><span class="brand-name">GuardianAI</span><span class="brand-sub">Information Protection &amp; Compliance</span></span>
+      </a>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active" data-page="overview">Executive Overview</button>
+        <button data-page="risk">Risk Prevention</button>
+        <button data-page="scenario">Live Scenario</button>
+        <button data-page="agents">Multi-Agent View</button>
+        <button data-page="architecture">Architecture</button>
+        <button data-page="outcomes">Business Outcomes</button>
+      </nav>
+      <div class="live-status"><span class="pulse"></span> Demo environment</div>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="view active" id="view-overview" aria-labelledby="overview-title">
+      <div class="hero">
+        <div class="eyebrow"><span class="tiny-dot"></span> Agentic Telco House · Security &amp; Compliance Room</div>
+        <h1 id="overview-title">AI Information Protection <span class="gradient-text">Command Center</span></h1>
+        <p class="lead">Help every employee use AI safely while protecting subscriber data, network assets, legal privilege and corporate strategy across the telecom enterprise.</p>
+        <p class="hero-note">Classify at the source. Enforce Microsoft Purview controls in the flow of work. Preserve and route responsive content to RelativityOne when legal review is required.</p>
+        <div class="hero-actions">
+          <button class="button primary" data-open-walkthrough>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.8c0-.8.9-1.3 1.6-.9l9 5.2a1 1 0 0 1 0 1.8l-9 5.2a1 1 0 0 1-1.6-.9V5.8Z"/></svg>
+            Start Executive Walkthrough
+          </button>
+          <button class="button" data-page-link="scenario">Explore live scenario <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+      <div class="grid kpi-grid">
+        <article class="panel kpi"><div class="kpi-label">AI interactions protected</div><div class="kpi-value">2.7<span class="accent">M</span></div><div class="kpi-foot">across employee AI experiences</div></article>
+        <article class="panel kpi"><div class="kpi-label">Policy violations prevented</div><div class="kpi-value warn">398</div><div class="kpi-foot">DLP actions and safe redirects</div></article>
+        <article class="panel kpi"><div class="kpi-label">Material data breaches</div><div class="kpi-value good">0</div><div class="kpi-foot">in this illustrative demo period</div></article>
+        <article class="panel kpi"><div class="kpi-label">Compliance score</div><div class="kpi-value good">95<span style="font-size:21px">%</span></div><div class="kpi-foot">control posture across key policies</div></article>
+        <article class="panel kpi"><div class="kpi-label">Manual review reduction</div><div class="kpi-value good">70<span style="font-size:21px">%</span></div><div class="kpi-foot">triage assisted by automation</div></article>
+        <article class="panel kpi"><div class="kpi-label">Potential exposure avoided</div><div class="kpi-value">$45<span class="accent">M</span></div><div class="kpi-foot">illustrative, trailing 12 months</div></article>
+      </div>
+      <div class="grid overview-grid" style="margin-top:16px">
+        <article class="panel panel-pad">
+          <h2 class="panel-title">Protected AI interactions &amp; prevented incidents</h2>
+          <p class="panel-desc">Monthly activity across Microsoft 365 and approved AI services</p>
+          <div class="chart" aria-label="Bar chart showing protected interactions and prevented incidents from January to June">
+            <div class="chart-y"><span>400</span><span>300</span><span>200</span><span>100</span><span>0</span></div>
+            <div class="chart-main"><div class="chart-grid"><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="bars">
+                <div class="bar-group"><i class="bar" style="height:36%"></i><i class="bar alt" style="height:20%"></i></div>
+                <div class="bar-group"><i class="bar" style="height:48%"></i><i class="bar alt" style="height:28%"></i></div>
+                <div class="bar-group"><i class="bar" style="height:44%"></i><i class="bar alt" style="height:32%"></i></div>
+                <div class="bar-group"><i class="bar" style="height:65%"></i><i class="bar alt" style="height:39%"></i></div>
+                <div class="bar-group"><i class="bar" style="height:70%"></i><i class="bar alt" style="height:44%"></i></div>
+                <div class="bar-group"><i class="bar" style="height:86%"></i><i class="bar alt" style="height:53%"></i></div>
+                <div class="bar-group"><i class="bar" style="height:79%"></i><i class="bar alt" style="height:48%"></i></div>
+                <div class="bar-group"><i class="bar" style="height:94%"></i><i class="bar alt" style="height:60%"></i></div>
+              </div>
+              <div class="months"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span></div>
+            </div>
+          </div>
+          <div class="legend"><span><i></i>Protected interactions</span><span><i class="alt"></i>Prevented incidents</span></div>
+        </article>
+        <article class="panel panel-pad">
+          <h2 class="panel-title">Organizational risk heat map</h2>
+          <p class="panel-desc">Exposure risk score by telco function</p>
+          <div class="heat-list">
+            <div class="heat-row"><span class="team">Corporate Strategy</span><span class="track"><span style="width:83%"></span></span><span class="score">83</span></div>
+            <div class="heat-row"><span class="team">Legal</span><span class="track"><span style="width:71%"></span></span><span class="score">71</span></div>
+            <div class="heat-row"><span class="team">Finance</span><span class="track"><span style="width:64%"></span></span><span class="score">64</span></div>
+            <div class="heat-row"><span class="team">Customer Care</span><span class="track"><span style="width:57%"></span></span><span class="score">57</span></div>
+            <div class="heat-row"><span class="team">HR</span><span class="track"><span style="width:48%"></span></span><span class="score">48</span></div>
+            <div class="heat-row"><span class="team">Network Operations</span><span class="track"><span style="width:39%"></span></span><span class="score">39</span></div>
+          </div>
+        </article>
+      </div>
+      <div class="panel walkthrough">
+        <div class="walk-copy"><span class="play-mark">▶</span><span><strong>Executive narrated walkthrough</strong><span>See how a routine employee request becomes a protected, auditable workflow.</span></span></div>
+        <button class="button small" data-open-walkthrough>Start walkthrough <span aria-hidden="true">→</span></button>
+      </div>
+      <p class="notice" style="margin:12px 2px 0">Illustrative interface and metrics for demonstration only. Product capabilities, licensing and connector behavior must be validated for your tenant.</p>
+    </section>
+
+    <section class="view" id="view-risk" aria-labelledby="risk-title">
+      <div class="subhero"><div class="eyebrow"><span class="tiny-dot"></span> Continuous protection · Microsoft Purview</div><h1 id="risk-title">Risk Prevention Dashboard</h1><p class="lead">See where sensitive telco information is at risk, which controls intervened, and how your compliance posture is trending.</p></div>
+      <div class="grid two-col">
+        <article class="panel panel-pad">
+          <h2 class="panel-title">Sensitive data exposure attempts</h2><p class="panel-desc">Monthly policy matches across collaboration and endpoint workloads</p>
+          <div class="chart" style="height:230px">
+            <div class="chart-y"><span>320</span><span>240</span><span>160</span><span>80</span><span>0</span></div>
+            <div class="chart-main"><div class="chart-grid"><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="bars">
+                <div class="bar-group"><i class="bar" style="height:40%"></i><i class="bar alt" style="height:28%"></i></div><div class="bar-group"><i class="bar" style="height:48%"></i><i class="bar alt" style="height:35%"></i></div><div class="bar-group"><i class="bar" style="height:54%"></i><i class="bar alt" style="height:39%"></i></div><div class="bar-group"><i class="bar" style="height:62%"></i><i class="bar alt" style="height:44%"></i></div><div class="bar-group"><i class="bar" style="height:71%"></i><i class="bar alt" style="height:52%"></i></div><div class="bar-group"><i class="bar" style="height:86%"></i><i class="bar alt" style="height:57%"></i></div>
+              </div><div class="months"><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span></div>
+            </div>
+          </div>
+          <div class="chart-legend"><span><i></i>Subscriber &amp; CPNI</span><span><i style="background:#ad92ff"></i>Finance &amp; HR</span><span><i style="background:#ffc66d"></i>Network / legal</span></div>
+        </article>
+        <article class="panel panel-pad">
+          <h2 class="panel-title">Top risks prevented</h2><p class="panel-desc">Policy actions this quarter</p>
+          <div style="margin-top:11px">
+            <div class="risk-row"><span>Subscriber CPNI exposure</span><span class="pill critical">124 blocked</span></div>
+            <div class="risk-row"><span>Executive forecast sharing</span><span class="pill">86 restricted</span></div>
+            <div class="risk-row"><span>Network topology disclosure</span><span class="pill">61 redirected</span></div>
+            <div class="risk-row"><span>Privileged legal content</span><span class="pill">43 preserved</span></div>
+            <div class="risk-row"><span>Payment card data transfer</span><span class="pill">38 blocked</span></div>
+          </div>
+        </article>
+      </div>
+      <div class="section-head"><div><h2 class="section-title">M365 E5 information protection coverage</h2><p class="section-sub">The classification and compliance signals that drive policy decisions</p></div><span class="pill cyan">Microsoft Purview</span></div>
+      <div class="grid classification-grid">
+        <article class="panel control-card"><span class="control-icon">◈</span><h3>Sensitivity labels</h3><p>Manual and recommended labels for Public, Internal, Confidential and Restricted content; apply encryption, access restrictions and visual markings.</p><span class="pill">Information Protection</span></article>
+        <article class="panel control-card"><span class="control-icon">⌕</span><h3>Auto-labeling &amp; classifiers</h3><p>Service- and client-side auto-labeling policies can use sensitive info types, trainable classifiers, exact data match, confidence thresholds and simulation.</p><span class="pill">Automatic classification</span></article>
+        <article class="panel control-card"><span class="control-icon">▤</span><h3>Sensitive information types</h3><p>Built-in identifiers plus custom patterns and exact data match for CPNI, IMSI / IMEI, call detail records, subscriber IDs, payment data and credentials.</p><span class="pill">Built-in + custom SITs</span></article>
+        <article class="panel control-card"><span class="control-icon">▦</span><h3>Label scope &amp; policy</h3><p>Label files, email, meetings and supported groups / sites. Configure defaults, mandatory labeling, priority, inheritance, downgrade justification, encryption and content markings.</p><span class="pill">Objects · defaults · protection</span></article>
+        <article class="panel control-card"><span class="control-icon">⌗</span><h3>Classification visibility</h3><p>Authorized analysts can inspect classified content and label activity with Purview explorer experiences, then correlate findings with policy and audit evidence.</p><span class="pill">Content &amp; activity review</span></article>
+        <article class="panel control-card"><span class="control-icon">⇥</span><h3>Data Loss Prevention</h3><p>Policy tips, audit, user overrides and block actions for Exchange, SharePoint, OneDrive, Teams and supported endpoint activities.</p><span class="pill">Workload-aware policies</span></article>
+        <article class="panel control-card"><span class="control-icon">⌑</span><h3>Insider Risk &amp; adaptive protection</h3><p>Correlate activity indicators with exfiltration signals and apply risk-based DLP controls where the configured licensing supports it.</p><span class="pill">Risk signals → controls</span></article>
+        <article class="panel control-card"><span class="control-icon">§</span><h3>Communication Compliance</h3><p>Detect and investigate policy-matched communications; preserve review context and escalate cases to authorized compliance teams.</p><span class="pill">Review &amp; investigation</span></article>
+        <article class="panel control-card"><span class="control-icon">⚖</span><h3>Retention, eDiscovery &amp; audit</h3><p>Retention labels, legal holds, case collection and audit evidence support defensible investigations; matter owners approve any controlled export to RelativityOne.</p><span class="pill">Preserve · review · evidence</span></article>
+      </div>
+      <div class="grid score-grid">
+        <article class="panel score-card"><div class="score-label">Privacy compliance</div><div class="score-num good">99%</div></article>
+        <article class="panel score-card"><div class="score-label">Regulatory controls</div><div class="score-num accent">97%</div></article>
+        <article class="panel score-card"><div class="score-label">Internal policy</div><div class="score-num violet">95%</div></article>
+        <article class="panel score-card"><div class="score-label">Data governance</div><div class="score-num warn">92%</div></article>
+      </div>
+      <p class="notice" style="margin-top:12px">Features and entitlements vary by Microsoft 365 / Purview licensing, configuration, workload and region. The controls shown are representative, not a licensing determination.</p>
+    </section>
+
+    <section class="view" id="view-scenario" aria-labelledby="scenario-title">
+      <div class="subhero"><div class="eyebrow"><span class="tiny-dot"></span> Live scenario · guided simulation</div><h1 id="scenario-title">Protection in the flow of work</h1><p class="lead">Watch GuardianAI identify sensitive content, apply M365 E5 classification and policy controls, and route a legal matter into a governed RelativityOne review workflow.</p></div>
+      <div class="scenario-tabs" role="tablist" aria-label="Choose a scenario">
+        <button class="scenario-tab selected" role="tab" aria-selected="true" data-scenario="legal">01 · Legal hold &amp; CPNI</button>
+        <button class="scenario-tab" role="tab" aria-selected="false" data-scenario="customer">02 · Customer data exposure</button>
+        <button class="scenario-tab" role="tab" aria-selected="false" data-scenario="network">03 · Network asset protection</button>
+      </div>
+      <div class="grid scenario-layout">
+        <article class="panel request-card">
+          <div class="person"><div class="avatar" id="person-avatar">JL</div><div><div class="person-name" id="person-name">Jordan · Legal Operations</div><div class="person-role" id="person-role">Regulatory response coordinator</div></div><span class="app-tag" id="app-tag">Microsoft 365 Copilot</span></div>
+          <p class="request-quote" id="request-quote">“Prepare a response to the regulator using these subscriber complaint records and call detail extracts. Keep the source material available for the active investigation.”</p>
+          <div class="label-small">Attached content</div>
+          <div class="file-list" id="file-list"></div>
+          <div class="classification">
+            <div class="class-header"><span class="label-small" style="margin:0">Classification result</span><span class="pill cyan">Auto-label candidate</span></div>
+            <div class="class-label"><b id="class-title">Highly Confidential · CPNI</b><span id="class-detail">Subscriber data · restricted access · encryption required</span></div>
+          </div>
+          <div class="run-row"><button class="button primary" id="run-scenario">Run protection simulation <span aria-hidden="true">→</span></button><button class="button small" id="reset-scenario" aria-label="Reset scenario">Reset</button></div>
+        </article>
+        <article class="panel steps-card">
+          <div class="section-head" style="margin:0 0 19px"><div><h2 class="panel-title">Decision &amp; protection workflow</h2><p class="panel-desc">Six control stages · simulated response</p></div><span class="pill green" id="scenario-status">Ready</span></div>
+          <div id="scenario-steps">
+            <div class="step" data-step="0"><span class="step-icon">1</span><div><h3>Discover &amp; classify content</h3><p>Match CPNI / subscriber identifiers; recommend a sensitivity label using content and context.</p></div><span class="step-status">Waiting</span></div>
+            <div class="step" data-step="1"><span class="step-icon">2</span><div><h3>Evaluate policy &amp; legal obligations</h3><p>Check DLP, retention, active matter criteria, privacy rules and authorized recipients.</p></div><span class="step-status">Waiting</span></div>
+            <div class="step" data-step="2"><span class="step-icon">3</span><div><h3>Enforce Microsoft Purview controls</h3><p>Apply label protection, least-privilege access and a DLP policy tip or block action.</p></div><span class="step-status">Waiting</span></div>
+            <div class="step" data-step="3"><span class="step-icon">4</span><div><h3>Preserve in Purview eDiscovery (Premium)</h3><p>Authorized case team validates scope; holds and collection preserve responsive data.</p></div><span class="step-status">Waiting</span></div>
+            <div class="step" data-step="4"><span class="step-icon">5</span><div><h3>Handoff to RelativityOne</h3><p>Approved export package enters the legal review workspace through a governed transfer.</p></div><span class="step-status">Waiting</span></div>
+            <div class="step" data-step="5"><span class="step-icon">6</span><div><h3>Guide employee &amp; record evidence</h3><p>Offer approved, minimized sources; capture policy outcome, rationale and audit reference.</p></div><span class="step-status">Waiting</span></div>
+          </div>
+          <div class="result-box" id="scenario-result" role="status" aria-live="polite"><strong>Protected, preserved and routed for review.</strong><p id="result-copy"></p></div>
+        </article>
+      </div>
+      <article class="panel panel-pad" style="margin-top:16px">
+        <div class="section-head" style="margin:0 0 8px"><div><h2 class="panel-title">Microsoft Purview eDiscovery → RelativityOne</h2><p class="panel-desc">A controlled legal review path—not an automatic or unrestricted transfer</p></div><span class="pill violet">Legal workflow</span></div>
+        <div class="timeline">
+          <div class="timeline-item"><span class="timeline-dot"></span><h3>Identify the matter</h3><p>Legal authorizes case scope, custodians and responsive data sources.</p></div>
+          <div class="timeline-item"><span class="timeline-dot"></span><h3>Preserve &amp; collect</h3><p>Purview eDiscovery case holds and gathers content under approved procedures.</p></div>
+          <div class="timeline-item"><span class="timeline-dot"></span><h3>Review &amp; minimize</h3><p>Legal validates scope, privilege, sensitivity and redaction needs before export.</p></div>
+          <div class="timeline-item"><span class="timeline-dot"></span><h3>Governed handoff</h3><p>Authorized package, metadata and chain-of-custody details move to RelativityOne.</p></div>
+          <div class="timeline-item"><span class="timeline-dot"></span><h3>Review &amp; retain</h3><p>RelativityOne supports downstream legal review; disposition follows matter policy.</p></div>
+        </div>
+        <div class="evidence-strip"><b>Control boundary:</b> connector, export format, encryption, approvals and audit mapping are deployment-specific. This demo illustrates the workflow; it does not claim a prebuilt native integration.</div>
+      </article>
+    </section>
+
+    <section class="view" id="view-agents" aria-labelledby="agents-title">
+      <div class="subhero"><div class="eyebrow"><span class="tiny-dot"></span> Orchestration · explainable decisions</div><h1 id="agents-title">Multi-Agent Collaboration View</h1><p class="lead">One employee request. Six specialized agents collaborate to understand intent, evaluate risk, enforce policy and provide a safe path forward.</p></div>
+      <div class="panel orchestration">
+        <div class="orchestration-node"><strong>Employee request</strong><span>Teams · Copilot · AI app</span></div><div class="flow-arrow">→</div>
+        <div class="orchestration-node central"><strong>GuardianAI policy orchestration</strong><span>Context · permissions · policy · evidence</span></div><div class="flow-arrow">→</div>
+        <div class="orchestration-node"><strong>Protected outcome</strong><span>Allow · guide · block · preserve</span></div>
+      </div>
+      <div class="grid agent-grid">
+        <article class="panel agent-card"><div class="agent-head"><span class="agent-icon">⌕</span><div><h3>Sensitive Data Discovery Agent</h3><span class="role">Identifies</span></div></div><ul><li>Subscriber PII, CPNI and payment data</li><li>IMSI / IMEI, CDRs and credentials</li><li>Network diagrams and source code</li></ul></article>
+        <article class="panel agent-card"><div class="agent-head"><span class="agent-icon">§</span><div><h3>Legal Compliance Agent</h3><span class="role">Evaluates</span></div></div><ul><li>Regulatory and retention obligations</li><li>Legal hold and investigation context</li><li>Privilege and governance boundaries</li></ul></article>
+        <article class="panel agent-card"><div class="agent-head"><span class="agent-icon">◈</span><div><h3>Information Protection Agent</h3><span class="role">Applies</span></div></div><ul><li>Purview sensitivity labels</li><li>DLP and auto-labeling policy outcomes</li><li>Encryption, markings and least privilege</li></ul></article>
+        <article class="panel agent-card"><div class="agent-head"><span class="agent-icon">⌑</span><div><h3>Privacy Protection Agent</h3><span class="role">Validates</span></div></div><ul><li>Purpose limitation and data minimization</li><li>Customer and employee privacy rules</li><li>Approved audience and data sources</li></ul></article>
+        <article class="panel agent-card"><div class="agent-head"><span class="agent-icon">✧</span><div><h3>Employee Guidance Agent</h3><span class="role">Provides</span></div></div><ul><li>Safe alternatives and approved sources</li><li>Policy tips and compliant next steps</li><li>Helpful explanation—not just a block</li></ul></article>
+        <article class="panel agent-card"><div class="agent-head"><span class="agent-icon">▤</span><div><h3>Audit &amp; Case Agent</h3><span class="role">Records</span></div></div><ul><li>User action and policy decision</li><li>Rationale, timestamps and evidence refs</li><li>Authorized Purview / Relativity handoff</li></ul></article>
+      </div>
+      <div class="panel panel-pad" style="margin-top:16px"><div class="section-head" style="margin:0 0 11px"><div><h2 class="panel-title">Decision guardrails</h2><p class="panel-desc">AI augments policy operations; authoritative controls remain in the configured Microsoft and legal systems.</p></div></div><div class="grid three-col"><div class="risk-row"><span>Policy source of truth</span><span class="pill cyan">Purview / tenant policy</span></div><div class="risk-row"><span>High-impact decisions</span><span class="pill">Human review</span></div><div class="risk-row"><span>Legal export approval</span><span class="pill violet">Matter team only</span></div></div></div>
+    </section>
+
+    <section class="view" id="view-architecture" aria-labelledby="architecture-title">
+      <div class="subhero"><div class="eyebrow"><span class="tiny-dot"></span> Reference architecture</div><h1 id="architecture-title">Built on Microsoft Security &amp; AI</h1><p class="lead">A layered architecture connects employee experiences, classification, security operations, enterprise data and legal review.</p></div>
+      <div class="arch-stack">
+        <article class="panel arch-layer"><span class="layer-num">LAYER 01</span><span class="layer-name">Employee applications</span><div class="layer-content"><span class="pill">Microsoft Teams</span><span class="pill">Outlook</span><span class="pill">SharePoint</span><span class="pill">OneDrive</span><span class="pill">Dynamics 365</span><span class="pill">Microsoft 365 Copilot</span></div></article>
+        <article class="panel arch-layer"><span class="layer-num">LAYER 02</span><span class="layer-name">AI orchestration</span><div class="layer-content"><span class="pill">Copilot Studio</span><span class="pill">Azure AI Foundry</span><span class="pill">GuardianAI policy orchestration</span><span class="pill">Approved AI services</span></div></article>
+        <article class="panel arch-layer layer-core"><span class="layer-num">LAYER 03</span><span class="layer-name">Protection &amp; compliance · Microsoft Purview</span><div class="layer-content"><span class="pill cyan">Information Protection</span><span class="pill cyan">Sensitivity labels</span><span class="pill cyan">DLP</span><span class="pill cyan">Insider Risk</span><span class="pill cyan">Communication Compliance</span><span class="pill cyan">eDiscovery (Premium)</span><span class="pill cyan">Audit</span><span class="pill cyan">Retention</span></div></article>
+        <article class="panel arch-layer"><span class="layer-num">LAYER 04</span><span class="layer-name">Security operations</span><div class="layer-content"><span class="pill">Microsoft Defender</span><span class="pill">Security Copilot</span><span class="pill">Microsoft Sentinel</span><span class="pill">Identity &amp; access controls</span></div></article>
+        <article class="panel arch-layer"><span class="layer-num">LAYER 05</span><span class="layer-name">Data &amp; legal review</span><div class="layer-content"><span class="pill">Microsoft Fabric</span><span class="pill">Dataverse</span><span class="pill">Subscriber / network systems</span><span class="pill violet">RelativityOne eDiscovery review</span></div></article>
+        <article class="panel arch-layer"><span class="layer-num">LAYER 06</span><span class="layer-name">Governance &amp; oversight</span><div class="layer-content"><span class="pill">CISO office</span><span class="pill">Legal &amp; eDiscovery</span><span class="pill">Privacy office</span><span class="pill">Risk management</span><span class="pill">Compliance team</span></div></article>
+      </div>
+      <div class="section-head"><div><h2 class="section-title">Classification signals for a telecom</h2><p class="section-sub">Combine label taxonomy, content detection, context and policy scope</p></div></div>
+      <div class="grid classification-grid">
+        <article class="panel control-card"><span class="control-icon">◈</span><h3>Content identifiers</h3><p>CPNI, subscriber account / contact data, call detail records, payment cards, IMSI / IMEI, IP addresses, credentials and custom data patterns.</p></article>
+        <article class="panel control-card"><span class="control-icon">▦</span><h3>Business classification</h3><p>Public · Internal · Confidential · Restricted. Add telecom-specific sublabels such as CPNI, Network Sensitive, Legal Privileged and M&amp;A.</p></article>
+        <article class="panel control-card"><span class="control-icon">⛨</span><h3>Protection settings</h3><p>Encryption, user / group rights, content markings, container labels, default labels, mandatory labeling and downgrade justification.</p></article>
+        <article class="panel control-card"><span class="control-icon">⌁</span><h3>Auto-label conditions</h3><p>Confidence thresholds, sensitive information types, trainable classifiers, exact data match, label inheritance and policy simulation.</p></article>
+        <article class="panel control-card"><span class="control-icon">⇥</span><h3>Enforcement locations</h3><p>Exchange, SharePoint, OneDrive, Teams and supported endpoints; use policy tips, audit, user justification, restrict or block.</p></article>
+        <article class="panel control-card"><span class="control-icon">⚖</span><h3>Records &amp; legal holds</h3><p>Retention labels and records management feed authorized investigation and eDiscovery case workflows; legal approves exports for RelativityOne.</p></article>
+      </div>
+      <div class="evidence-strip" style="margin-top:16px"><b>Deployment note:</b> Reference architecture only. Microsoft product names, availability and entitlement depend on the tenant's current plan and configuration. RelativityOne connection pattern requires customer-approved integration and legal process design.</div>
+    </section>
+
+    <section class="view" id="view-outcomes" aria-labelledby="outcomes-title">
+      <div class="subhero"><div class="eyebrow"><span class="tiny-dot"></span> Executive value · measurable outcomes</div><h1 id="outcomes-title">AI innovation without information exposure</h1><p class="lead">Make safe AI adoption practical: prevent leakage, reduce investigation friction and preserve a defensible trail from employee action to legal review.</p></div>
+      <div class="grid three-col outcome-grid">
+        <article class="panel"><span class="outcome-icon">⛨</span><h3>Prevent data leakage</h3><p>Stop sensitive customer, CPNI and network information before unauthorized disclosure.</p></article>
+        <article class="panel"><span class="outcome-icon">§</span><h3>Reduce legal risk</h3><p>Align policy action, preservation and review with authorized matter procedures.</p></article>
+        <article class="panel"><span class="outcome-icon">✧</span><h3>Accelerate AI adoption</h3><p>Give employees approved sources and safer alternatives rather than a dead-end block.</p></article>
+        <article class="panel"><span class="outcome-icon">◈</span><h3>Protect network assets</h3><p>Safeguard topology, configurations, credentials and sensitive engineering content.</p></article>
+        <article class="panel"><span class="outcome-icon">▤</span><h3>Improve audit readiness</h3><p>Capture classification, policy outcomes, approvals and review handoff evidence.</p></article>
+        <article class="panel"><span class="outcome-icon">↗</span><h3>Lower review effort</h3><p>Use risk-based triage and governed workflows to focus experts on consequential cases.</p></article>
+      </div>
+      <div class="grid kpi-grid" style="margin-top:16px">
+        <article class="panel kpi"><div class="kpi-label">AI interactions protected</div><div class="kpi-value accent">2.7M</div><div class="kpi-foot">illustrative demo metric</div></article>
+        <article class="panel kpi"><div class="kpi-label">Compliance events prevented</div><div class="kpi-value warn">398</div><div class="kpi-foot">illustrative demo metric</div></article>
+        <article class="panel kpi"><div class="kpi-label">Sensitive data breaches</div><div class="kpi-value good">0</div><div class="kpi-foot">illustrative demo metric</div></article>
+      </div>
+      <div class="panel value-banner"><div><h2>Confident AI. Protected subscribers. Defensible discovery.</h2><p>Connect Microsoft Purview protection to a carefully governed RelativityOne review process.</p></div><div class="brand-stack">Microsoft Purview · Defender · Security Copilot<br>Microsoft 365 Copilot · Copilot Studio · Azure AI Foundry<br>RelativityOne · legal review workspace</div></div>
+      <p class="notice" style="margin-top:12px">All metrics on this page are illustrative and are not customer results, product performance claims or compliance certifications.</p>
+    </section>
+    <footer class="footer"><span>GuardianAI · Agentic Telco House · Security &amp; Compliance Room</span><span>Illustrative demo · Sample data only · No live tenant connection</span></footer>
+  </main>
+
+  <div class="walk-modal" id="walk-modal" role="dialog" aria-modal="true" aria-labelledby="walk-title">
+    <div class="modal-card">
+      <div class="modal-top"><div><div class="eyebrow"><span class="tiny-dot"></span> Executive walkthrough</div><h2 id="walk-title">Safe AI starts with context</h2></div><button class="close" data-close-modal aria-label="Close walkthrough">×</button></div>
+      <p class="modal-copy" id="walk-copy"></p>
+      <div class="modal-controls"><div class="dots" id="walk-dots" aria-hidden="true"></div><div style="display:flex;gap:8px"><button class="button small" id="walk-prev">Back</button><button class="button primary small" id="walk-next">Next</button></div></div>
+    </div>
+  </div>
+  <script>
+    const pages = ["overview", "risk", "scenario", "agents", "architecture", "outcomes"];
+    const navButtons = [...document.querySelectorAll("[data-page]")];
+    function showPage(page) {
+      if (!pages.includes(page)) return;
+      document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${page}`));
+      navButtons.forEach(button => {
+        const active = button.dataset.page === page;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-current", active ? "page" : "false");
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    navButtons.forEach(button => button.addEventListener("click", () => showPage(button.dataset.page)));
+    document.querySelectorAll("[data-page-link]").forEach(link => link.addEventListener("click", event => {
+      event.preventDefault(); showPage(link.dataset.pageLink);
+    }));
+
+    const scenarios = {
+      legal: {
+        initials: "JL", name: "Jordan · Legal Operations", role: "Regulatory response coordinator", app: "Microsoft 365 Copilot",
+        quote: "“Prepare a response to the regulator using these subscriber complaint records and call detail extracts. Keep the source material available for the active investigation.”",
+        files: [["XLS","Subscriber complaints.xlsx","CPNI · 2,418 records"],["CSV","Call detail extracts.csv","Restricted · CDR"],["DOC","Regulatory response draft.docx","Confidential · Legal"]],
+        label: "Highly Confidential · CPNI", detail: "Subscriber data · restricted access · encryption required",
+        steps: [
+          ["Discover & classify content","Match CPNI / subscriber identifiers; recommend a sensitivity label using content and context."],
+          ["Evaluate policy & legal obligations","Check DLP, retention, active matter criteria, privacy rules and authorized recipients."],
+          ["Enforce Microsoft Purview controls","Apply label protection, least-privilege access and a DLP policy tip or block action."],
+          ["Preserve in Purview eDiscovery (Premium)","Authorized case team validates scope; holds and collection preserve responsive data."],
+          ["Handoff to RelativityOne","Approved export package enters the legal review workspace through a governed transfer."],
+          ["Guide employee & record evidence","Offer approved, minimized sources; capture policy outcome, rationale and audit reference."]
+        ],
+        result: "CPNI is identified and labeled; the outbound request is restricted by DLP. Legal validates scope, preserves responsive content in an authorized Purview eDiscovery case, then approves a controlled package for RelativityOne review. The employee receives a minimized, approved response source."
+      },
+      customer: {
+        initials: "MC", name: "Maya · Customer Care", role: "Service quality manager", app: "Microsoft Teams Copilot",
+        quote: "“Summarize these customer escalations and draft a reply for the regional team. Include the account details so they can follow up.”",
+        files: [["XLS","Escalation queue.xlsx","Subscriber PII · 186 records"],["MSG","Customer case notes.msg","Confidential · Personal data"],["PDF","Service issue summary.pdf","Internal"]],
+        label: "Confidential · Subscriber PII", detail: "Personal data detected · minimize recipients and fields",
+        steps: [
+          ["Discover & classify content","Identify subscriber names, account numbers and contact data in the attached support records."],
+          ["Evaluate policy & legal obligations","Assess purpose, audience, recipient scope and permitted handling for customer data."],
+          ["Enforce Microsoft Purview controls","Apply a Confidential label; DLP flags external sharing and provides a policy tip."],
+          ["Minimize the data set","Replace account-level details with approved aggregate trends for the regional summary."],
+          ["Offer a safe alternative","Draft the response from an approved service summary without exposing raw customer records."],
+          ["Record decision evidence","Log the policy match, user guidance and permitted data source for follow-up."]
+        ],
+        result: "Subscriber identifiers are detected and protected. DLP prevents the raw case file from being shared beyond the authorized group; the employee is offered an aggregated, minimized service summary instead."
+      },
+      network: {
+        initials: "AR", name: "Alex · Network Engineering", role: "Core network architect", app: "Microsoft 365 Copilot",
+        quote: "“Create a vendor troubleshooting brief from this architecture pack and include the current routing maps and access details.”",
+        files: [["PPT","Core network topology.pptx","Network Sensitive"],["TXT","Gateway credentials.txt","Secret · credentials"],["DOC","Vendor incident brief.docx","Internal"]],
+        label: "Restricted · Network Sensitive", detail: "Topology + credentials · do not disclose externally",
+        steps: [
+          ["Discover & classify content","Detect network diagrams, IP ranges, device identifiers and credential-like strings."],
+          ["Evaluate policy & legal obligations","Verify vendor approval, contract scope and whether each requested field is necessary."],
+          ["Enforce Microsoft Purview controls","Apply Restricted classification; endpoint / DLP rules block unauthorized transfer."],
+          ["Remove secrets and topology","Keep credentials and detailed network maps in authorized engineering systems."],
+          ["Generate a sanitized brief","Use a redacted incident summary and approved troubleshooting steps for the vendor."],
+          ["Record decision evidence","Capture the classification, DLP action, approved recipient and sanitized output reference."]
+        ],
+        result: "Credentials and detailed topology are classified Restricted and blocked from external disclosure. A sanitized troubleshooting brief is prepared from approved content, with the decision recorded for audit."
+      }
+    };
+    const fileList = document.getElementById("file-list");
+    const stepContainer = document.getElementById("scenario-steps");
+    let currentScenario = "legal";
+    let running = false;
+    function renderScenario(id) {
+      currentScenario = id;
+      const scenario = scenarios[id];
+      document.getElementById("person-avatar").textContent = scenario.initials;
+      document.getElementById("person-name").textContent = scenario.name;
+      document.getElementById("person-role").textContent = scenario.role;
+      document.getElementById("app-tag").textContent = scenario.app;
+      document.getElementById("request-quote").textContent = scenario.quote;
+      document.getElementById("class-title").textContent = scenario.label;
+      document.getElementById("class-detail").textContent = scenario.detail;
+      fileList.innerHTML = scenario.files.map(([icon, name, tag]) => `<div class="file"><span class="file-icon">${icon}</span><span>${name}</span><span class="pill">${tag}</span></div>`).join("");
+      stepContainer.innerHTML = scenario.steps.map(([title, detail], index) => `<div class="step" data-step="${index}"><span class="step-icon">${index + 1}</span><div><h3>${title}</h3><p>${detail}</p></div><span class="step-status">Waiting</span></div>`).join("");
+      document.getElementById("scenario-status").textContent = "Ready";
+      document.getElementById("scenario-result").classList.remove("visible");
+      document.querySelectorAll(".scenario-tab").forEach(tab => {
+        const selected = tab.dataset.scenario === id;
+        tab.classList.toggle("selected", selected);
+        tab.setAttribute("aria-selected", selected ? "true" : "false");
+      });
+    }
+    document.querySelectorAll(".scenario-tab").forEach(tab => tab.addEventListener("click", () => {
+      if (!running) renderScenario(tab.dataset.scenario);
+    }));
+    function resetScenario() { running = false; renderScenario(currentScenario); }
+    document.getElementById("reset-scenario").addEventListener("click", resetScenario);
+    document.getElementById("run-scenario").addEventListener("click", async event => {
+      if (running) return;
+      running = true;
+      const button = event.currentTarget;
+      button.disabled = true;
+      button.textContent = "Analyzing request…";
+      const steps = [...stepContainer.querySelectorAll(".step")];
+      document.getElementById("scenario-status").textContent = "Running";
+      for (let index = 0; index < steps.length; index++) {
+        if (!running) break;
+        const step = steps[index];
+        step.classList.add("active");
+        step.querySelector(".step-status").textContent = "In progress";
+        await new Promise(resolve => setTimeout(resolve, 520));
+        if (!running) break;
+        step.classList.remove("active");
+        step.classList.add("done");
+        step.querySelector(".step-icon").textContent = "✓";
+        step.querySelector(".step-status").textContent = "Complete";
+      }
+      if (running) {
+        document.getElementById("scenario-status").textContent = "Protected";
+        document.getElementById("result-copy").textContent = scenarios[currentScenario].result;
+        document.getElementById("scenario-result").classList.add("visible");
+      }
+      running = false;
+      button.disabled = false;
+      button.innerHTML = 'Run protection simulation <span aria-hidden="true">→</span>';
+    });
+    renderScenario("legal");
+
+    const walkthrough = [
+      ["AI brings new exposure paths", "Imagine 50,000 employees using copilots every day. Customer care, finance, network engineering and legal all work with information that has different handling rules."],
+      ["Most incidents are ordinary mistakes", "A well-intentioned employee can paste CPNI into a prompt, attach an unreleased forecast or send a network map to the wrong audience. The goal is to understand context before data leaves."],
+      ["Classification makes policy actionable", "M365 E5 Purview controls can use sensitivity labels, sensitive information types, classifiers and policy conditions to identify content and apply the right handling requirements."],
+      ["Protect work and preserve evidence", "DLP can warn, restrict or block. If a legal matter requires preservation, authorized teams manage a Purview eDiscovery case and approve the reviewed export to RelativityOne."],
+      ["Enable people with a safe path", "GuardianAI guides the employee to approved and minimized sources, while recording the decision context for audit. Productivity continues without turning every sensitive request into a breach."]
+    ];
+    let walkIndex = 0;
+    const modal = document.getElementById("walk-modal");
+    function renderWalkthrough() {
+      document.getElementById("walk-title").textContent = walkthrough[walkIndex][0];
+      document.getElementById("walk-copy").textContent = walkthrough[walkIndex][1];
+      document.getElementById("walk-dots").innerHTML = walkthrough.map((_, index) => `<i class="${index === walkIndex ? "active" : ""}"></i>`).join("");
+      document.getElementById("walk-prev").disabled = walkIndex === 0;
+      document.getElementById("walk-next").textContent = walkIndex === walkthrough.length - 1 ? "Finish" : "Next";
+    }
+    document.querySelectorAll("[data-open-walkthrough]").forEach(button => button.addEventListener("click", () => {
+      walkIndex = 0; renderWalkthrough(); modal.classList.add("open"); document.getElementById("walk-next").focus();
+    }));
+    document.querySelectorAll("[data-close-modal]").forEach(button => button.addEventListener("click", () => modal.classList.remove("open")));
+    modal.addEventListener("click", event => { if (event.target === modal) modal.classList.remove("open"); });
+    document.getElementById("walk-prev").addEventListener("click", () => { walkIndex = Math.max(0, walkIndex - 1); renderWalkthrough(); });
+    document.getElementById("walk-next").addEventListener("click", () => {
+      if (walkIndex === walkthrough.length - 1) modal.classList.remove("open");
+      else { walkIndex++; renderWalkthrough(); }
+    });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") modal.classList.remove("open"); });
+  </script>
+</body>
+</html>
